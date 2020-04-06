@@ -1,10 +1,11 @@
 import datetime
-from rest_framework.decorators import action
 from django.http import JsonResponse
-from rest_framework import viewsets, permissions, generics
 from django.db.models import Count
 from django.utils.timezone import make_aware
+from rest_framework import viewsets, permissions, generics, status, serializers
+from rest_framework.decorators import action
 
+from social.models import Post, Like, User
 from social.serializers import (
     PostSerializer,
     UserSerializer,
@@ -13,7 +14,6 @@ from social.serializers import (
     LikesStatsSerializer,
     LikesStatsFilterSerializer,
 )
-from social.models import Post, Like, User
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -32,6 +32,7 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True)
     def action(self, request, *args, **kwargs):
         requested_user = self.get_object()
+
         requested_user_data = User.objects.filter(
             username=requested_user.username
         ).first()
@@ -108,4 +109,4 @@ class LikeStatsApiView(generics.ListAPIView):
             return queryset
 
         else:
-            return []
+            raise serializers.ValidationError(filters.errors)
